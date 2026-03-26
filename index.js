@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import productRouter from "./routes/productRouter.js";
 import userRouter from "./routes/userRouter.js";
 import jwt, { decode } from 'jsonwebtoken';
+import orderRouter from "./routes/orderRouter.js";
 
 //mongodb
 //mongodb+srv://admin:123@cluster0.gfudtbq.mongodb.net/?appName=Cluster0
@@ -59,6 +60,7 @@ mongoose.connect("mongodb+srv://admin:123@cluster0.gfudtbq.mongodb.net/mydb?appN
 
 app.use("/product",productRouter)
 app.use("/user",userRouter)
+app.use("/order",orderRouter)
 
 
 
