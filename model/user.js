@@ -3,45 +3,44 @@ import mongoose from "mongoose";
 const userSchema=mongoose.Schema({
     email:{
         type:String,
-        require:true,
-        uniqe:true
+        required:true,
+        unique:true
     },
 
     firstname :{
         type:String,
-        require:true,
+        required:true,
 
     },
 
      lastname :{
         type:String,
-        require:true,
+        required:true,
 
     },
 
      password:{
         type:String,
-        require:true,
+        required:true,
 
     },
 
      role :{
         type:String,
-        require:true,
+        required:true,
         default:"customer"
 
     },
 
      isBlocked :{
-        type:String,
-        require:true,
-        delete:false
+        type:Boolean,
+        default:false
 
     },
 
      img :{
         type:String,
-        require:true,
+        required:true,
         default:"https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
 
     }

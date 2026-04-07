@@ -5,13 +5,16 @@ import productRouter from "./routes/productRouter.js";
 import userRouter from "./routes/userRouter.js";
 import jwt, { decode } from 'jsonwebtoken';
 import orderRouter from "./routes/orderRouter.js";
+import cors from "cors";
 
 //mongodb
 //mongodb+srv://admin:123@cluster0.gfudtbq.mongodb.net/?appName=Cluster0
 
 const app=express();
-
+app.use(cors())
 app.use(bodyParser.json( ))
+app.use(express.urlencoded({ extended: true }))
+
 
 app.use(
     (req,res,next)=>{
