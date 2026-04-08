@@ -6,6 +6,9 @@ import userRouter from "./routes/userRouter.js";
 import jwt, { decode } from 'jsonwebtoken';
 import orderRouter from "./routes/orderRouter.js";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 //mongodb
 //mongodb+srv://admin:123@cluster0.gfudtbq.mongodb.net/?appName=Cluster0
@@ -24,7 +27,7 @@ app.use(
             const token=tokenString.replace("Bearer ","")
              
 
-             jwt.verify(token,"cbc-batch-five#@2025",
+             jwt.verify(token,process.env.JWT_KEY,
                 (err,decoded)=>{
                     if(decoded!=null){
                        req.user=decoded
@@ -52,7 +55,7 @@ app.use(
 
 
 
-mongoose.connect("mongodb+srv://admin:123@cluster0.gfudtbq.mongodb.net/mydb?appName=Cluster0")
+mongoose.connect(process.env.MONGODB_URL)
 .then(()=>{
     console.log("Connected to the database")
 }).catch(()=>{

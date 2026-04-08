@@ -1,7 +1,9 @@
 import User from "../model/user.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
+dotenv.config();
 
 export function createUser(req,res){
 
@@ -22,13 +24,23 @@ export function createUser(req,res){
     }
 
 
-const passwordHashed=bcrypt.hashSync(req.body.password ,10)
+    const email = req.body.email?.trim().toLowerCase()
+    const password = req.body.password
+
+    if(!email || !password || !req.body.firstname || !req.body.lastname){
+        res.status(400).json({
+            message:"firstname, lastname, email, and password are required"
+        })
+        return
+    }
+
+const passwordHashed=bcrypt.hashSync(password ,10)
     const user=new User(
         {
            
            firstname:req.body.firstname,
            lastname:req.body.lastname,
-           email :req.body.email, 
+           email :email, 
            password:passwordHashed,
            role:req.body.role,
            
@@ -53,15 +65,25 @@ const passwordHashed=bcrypt.hashSync(req.body.password ,10)
 
 
 export function loginUser(req ,res){
-    const email =req.body.email
+    const email =req.body.email?.trim().toLowerCase()
     const password=req.body.password
 
-    User.findOne({email:email}).then(
+    if(!email || !password){
+        res.status(400).json({
+            message:"email and password are required"
+        })
+        return
+    }
+
+    const emailPattern = new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+
+    User.findOne({email:emailPattern}).then(
         (user)=>{
             if(user==null){
                 res.status(404).json({
                     message:"User not found"
                 })
+                return
 
                 
             }
@@ -77,7 +99,7 @@ export function loginUser(req ,res){
                             role:user.role,
                             img:user.img
                         },
-                        "cbc-batch-five#@2025"
+                        process.env.JWT_KEY,        
                     )
         res.json({
             message : "Login successful",
