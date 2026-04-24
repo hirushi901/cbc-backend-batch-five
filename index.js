@@ -15,8 +15,23 @@ dotenv.config();
 
 const app=express();
 app.use(cors())
+app.use(express.json())
 app.use(bodyParser.json( ))
 app.use(express.urlencoded({ extended: true }))
+
+app.get("/health", (req, res) => {
+    res.json({ status: "ok" });
+});
+
+app.use((req, res, next) => {
+    if (req.method === "POST" && req.path === "/user/login") {
+        console.log("[request] /user/login", {
+            contentType: req.headers["content-type"],
+            bodyKeys: req.body ? Object.keys(req.body) : [],
+        });
+    }
+    next();
+});
 
 
 app.use(
@@ -55,7 +70,9 @@ app.use(
 
 
 
-mongoose.connect(process.env.MONGODB_URL)
+mongoose.connect(process.env.MONGODB_URL, {
+    dbName: "mydb",
+})
 .then(()=>{
     console.log("Connected to the database")
 }).catch(()=>{

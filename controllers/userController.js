@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+function normalizeEmail(email) {
+    return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
+
 export function createUser(req,res){
 
     if(req.body.role=="admin"){
@@ -64,54 +68,72 @@ const passwordHashed=bcrypt.hashSync(password ,10)
 }
 
 
-export function loginUser(req ,res){
-    const email =req.body.email?.trim().toLowerCase()
-    const password=req.body.password
+export async function loginUser(req, res) {
+    const body = req.body || {};
+    const email = normalizeEmail(body.email);
+    const password = body.password;
 
-    if(!email || !password){
+    console.log("[login] incoming request", {
+        contentType: req.headers["content-type"],
+        bodyKeys: Object.keys(body),
+        hasEmail: Boolean(body.email),
+        hasPassword: Boolean(body.password),
+        normalizedEmail: email || "(empty)",
+    });
+
+    if (!email || !password) {
+        console.warn("[login] missing email or password");
         res.status(400).json({
-            message:"email and password are required"
+            message: "email and password are required"
         })
         return
     }
 
-    const emailPattern = new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+    try {
+        console.log("[login] querying user by email");
+        const user = await User.findOne({ email });
 
-    User.findOne({email:emailPattern}).then(
-        (user)=>{
-            if(user==null){
-                res.status(404).json({
-                    message:"User not found"
-                })
-                return
+        if (user == null) {
+            console.warn("[login] no user found for email", email);
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
 
-                
-            }
-            else{
-                const isPasswordCorrect=bcrypt.compareSync(password,user.password)
-                if(isPasswordCorrect){
+        const isPasswordCorrect = bcrypt.compareSync(password, user.password);
 
-                    const token=jwt.sign(
-                        {
-                            email:user.email,
-                            firstname:user.firstname,
-                            lastname:user.lastname,
-                            role:user.role,
-                            img:user.img
-                        },
-                        process.env.JWT_KEY,        
-                    )
+        if (!isPasswordCorrect) {
+            console.warn("[login] password mismatch for email", email);
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                email: user.email,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                role: user.role,
+                img: user.img
+            },
+            process.env.JWT_KEY
+        );
+
+        console.log("[login] login successful", {
+            userId: user._id,
+            email: user.email,
+            role: user.role,
+        });
+
         res.json({
-            message : "Login successful",
-            token:token
-           
+            message: "Login successful",
+            token: token
         })
-    }else{
-        res.status(401).json({
-            message : "Invalid password"
+    } catch (error) {
+        console.error("[login] unexpected failure:", error)
+        res.status(500).json({
+            message: "Login failed. Please try again."
         })
     }
-            }
-        }
-    )
 }
